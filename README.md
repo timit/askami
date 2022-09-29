@@ -1,1 +1,59 @@
 # askami
+
+anatomy: node.js - slack/bolt based slack application
+purpose: get information about the atlassian marketplace
+
+- node dependencies
+    - `npm install @slack/bolt`
+    - `npm install winston`
+- slack permissions
+    - add botscope `chat:write` to allow messages as @askami
+    - add botscope `chat:write.public` to allow messages as @askami w/o membership
+    - add botscope `commands` to enable slash command
+- add slack channel for observing usage
+    - create private channel (e.g. `askami-observability`)
+    - add askami app to the channel
+- create `askami.env` file
+    - `SLACK_SIGNING_SECRET=<obtain-from-slack-app-configuration-page>`
+    - `SLACK_BOT_TOKEN=<obtain-from-slack-app-configuration-page>`
+    - `MARKETPLACE_SERVICE_PROTOCOL=https`
+    - `MARKETPLACE_SERVICE_HOST=marketplace.atlassian.com`
+    - `LOGGER_LEVEL=<level>` (error, warn, info, debug)
+    - `PORT=3001`
+    - `OBSERVABILITY_CHANNEL=<slack-channel-for-usage-monitoring> (created above)`
+- development: docker image
+    - build `docker build -t ghcr.io/timit/askami .`
+    - run `docker run -d -p 3000:3000 --env-file /<path>/askami.env -v <path>:/var/log --rm ghcr.io/timit/askami`
+    - attach `docker exec -it <container-id> /bin/sh`
+    - view logs `docker logs --follow <container-id>`
+- distribution: docker image (from development machine)
+    - [create github personal-access-token](https://github.com/settings/tokens) for pushing to the container registry
+        - provide note/name: askami-push
+        - (optionally) provide username: askami-push
+        - grant `read:packages` and `write:packages` permissions
+        - provide an expiration date
+        - (recommended) store credential in your password store
+    - login `docker login ghcr.io` (prompts for deploy-token username/password)
+    - build
+        - when building from `linux/amd` architecture `docker build -t ghcr.io/timit/askami .`
+        - when building from other architecture (i.e mac arm) `docker buildx build --platform linux/amd64 -t ghcr.io/timit/askami .`
+    - push `docker push ghcr.io/timit/askami`
+- deployment: docker image
+    - [create github personal-access-token](https://github.com/settings/tokens) for pulling from the container registry
+        - provide note/name: askami-pull
+        - (optionally) provide username: askami-pull
+        - grant `read:packages` permissions
+        - provide an expiration date
+        - (recommended) store credential in your password store
+    - attach to askami server `ssh -i /<path>/askami.pem username@machine-name.domain.com`
+    - stop container `sudo docker stop <container-id>`
+    - login `sudo docker login ghcr.io` (provide username/token created during distribution steps)
+    - pull `sudo docker pull ghcr.io/timit/askami`
+    - add config file for docker container initialization `/etc/askami.env` (standard service config location per https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html)
+    - start container `sudo docker run -d -p 3000:3000 --env-file /etc/askami.env -v <path>:/var/log --rm ghcr.io/timit/askami`
+- monitoring: docker container
+    - obtain container-id `sudo docker ps -al`
+    - attach `sudo docker exec -it <container-id> /bin/sh`
+- tidy up
+    - `docker system prune --all`
+    - `docker buildx prune --all`
