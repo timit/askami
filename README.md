@@ -4,8 +4,13 @@ anatomy: node.js - slack/bolt based slack application
 purpose: get information about the atlassian marketplace
 
 - node dependencies
-    - `npm install @slack/bolt`
-    - `npm install winston`
+    - core features
+        - `npm install @slack/bolt`
+        - `npm install winston`
+    - optional features
+        - `npm install pg`
+        - `npm install got`
+        - `npm install url`
 - slack permissions
     - add botscope `chat:write` to allow messages as @askami
     - add botscope `chat:write.public` to allow messages as @askami w/o membership
@@ -14,13 +19,20 @@ purpose: get information about the atlassian marketplace
     - create private channel (e.g. `askami-observability`)
     - add askami app to the channel
 - create `askami.env` file
-    - `SLACK_SIGNING_SECRET=<obtain-from-slack-app-configuration-page>`
-    - `SLACK_BOT_TOKEN=<obtain-from-slack-app-configuration-page>`
-    - `MARKETPLACE_SERVICE_PROTOCOL=https`
-    - `MARKETPLACE_SERVICE_HOST=marketplace.atlassian.com`
-    - `LOGGER_LEVEL=<level>` (error, warn, info, debug)
-    - `PORT=3001`
-    - `OBSERVABILITY_CHANNEL=<slack-channel-for-usage-monitoring> (created above)`
+    - core features
+        - `SLACK_SIGNING_SECRET=<obtain-from-slack-app-configuration-page>`
+        - `SLACK_BOT_TOKEN=<obtain-from-slack-app-configuration-page>`
+        - `MARKETPLACE_SERVICE_PROTOCOL=https`
+        - `MARKETPLACE_SERVICE_HOST=marketplace.atlassian.com`
+        - `LOGGER_LEVEL=<level>` (error, warn, info, debug)
+        - `PORT=3001`
+        - `OBSERVABILITY_CHANNEL=<slack-channel-for-usage-monitoring> (created above)`
+    - optional features
+        - `AMCACHE_HOST=<obtain-from-service-provider>`
+        - `AMCACHE_PORT=<obtain-from-service-provider>`
+        - `AMCACHE_DB=<obtain-from-service-provider>`
+        - `AMCACHE_USR=<obtain-from-service-provider>`
+        - `AMCACHE_PSW=<obtain-from-service-provider>`
 - development: docker image
     - build `docker build -t ghcr.io/timit/askami .`
     - run `docker run -d -p 3000:3000 --env-file /<path>/askami.env -v <path>:/var/log --rm ghcr.io/timit/askami`
