@@ -8,6 +8,7 @@ USER node
 WORKDIR /usr/src/app
 # avoid copying files as root
 COPY --chown=node:node . .
+# clean install node dependencies
 RUN npm ci --only=production
 # invoke with dumb-init to handle orchestration events and safely terminate app
 CMD ["dumb-init", "node", "app.js"]

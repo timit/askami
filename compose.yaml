@@ -1,0 +1,37 @@
+services:
+    amcache-store:
+        image: postgres:latest
+        environment:
+            - POSTGRES_USER=${AMCACHE_STORE_USR}
+            - POSTGRES_PASSWORD=${AMCACHE_STORE_PSW}
+            - POSTGRES_DB=${AMCACHE_STORE_DB}
+            - POSTGRES_LOG_LEVEL=${AMCACHE_STORE_LOG_LEVEL}
+        volumes:
+            - ./amcache-store/ddl/init.sql:/docker-entrypoint-initdb.d/init.sql
+            - ${AMCACHE_STORE_DATA}:/var/lib/postgresql/data
+        ports:
+            - "5432:${AMCACHE_STORE_PORT}"
+    slack-client:
+        build: ./slack-client
+        environment:
+            - SLACK_SIGNING_SECRET=${SLACK_CLIENT_SLACK_SIGNING_SECRET}
+            - SLACK_BOT_TOKEN=${SLACK_CLIENT_SLACK_BOT_TOKEN}
+            - MARKETPLACE_SERVICE_PROTOCOL=${SLACK_CLIENT_MARKETPLACE_SERVICE_PROTOCOL}
+            - MARKETPLACE_SERVICE_HOST=${SLACK_CLIENT_MARKETPLACE_SERVICE_HOST}
+            - LOGGER_LEVEL=${SLACK_CLIENT_LOGGER_LEVEL}
+            - PORT=${SLACK_CLIENT_PORT}
+            - OBSERVABILITY_CHANNEL=${SLACK_CLIENT_OBSERVABILITY_CHANNEL}
+        depends_on:
+            - amcache-store
+    amcache-harvester:
+        build:
+            context: ./amcache-harvester
+            args:
+                AMCACHE_HARVESTER_CRON_SCHEDULE: ${AMCACHE_HARVESTER_CRON_SCHEDULE}
+        environment:
+            - LOGGER_LEVEL=${AMCACHE_HARVESTER_LOG_LEVEL}
+        depends_on:
+            - amcache-store
+networks:
+    lognet:
+        driver: bridge

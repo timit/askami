@@ -264,12 +264,17 @@ slackApp.action({block_id: 'VendorListPagination'}, async ({ action, ack, body, 
 //global error handler
 slackApp.error((error) => {
     const context = '[slackApp.error]';
+    logger.debug(`${context}`);
     logger.error(`${context} ${error}`);
 });
 
 // initialize and start
 (async () => {
     const context = '[slackApp]';
+    logger.debug(`${context}`);
+    //disable default console logger
+    console.log = function () { };
+    //start app
     await slackApp.start(process.env.PORT || 3000);
     logger.info(`${context} askami is alive!`);
 })();
